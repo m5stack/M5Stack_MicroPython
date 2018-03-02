@@ -204,7 +204,7 @@ STATIC void data_cb(void *self, void *params)
 			if (!carg) return;
 			if (!make_carg_entry(carg, 0, MP_SCHED_ENTRY_TYPE_STR, strlen(client->name), (const uint8_t *)client->name, NULL)) return;
 			if (!make_carg_entry(carg, 1, MP_SCHED_ENTRY_TYPE_STR, event_data->topic_length, (const uint8_t *)event_data->topic, NULL)) return;
-			if (!make_carg_entry(carg, 2, MP_SCHED_ENTRY_TYPE_STR, event_data->data_length, (const uint8_t *)event_data->data, NULL)) return;
+			if (!make_carg_entry(carg, 2, MP_SCHED_ENTRY_TYPE_BYTES, event_data->data_length, (const uint8_t *)event_data->data, NULL)) return;
 			mp_sched_schedule(client->settings->mpy_data_cb, mp_const_none, carg);
 		}
 	}
@@ -220,7 +220,7 @@ STATIC void data_cb(void *self, void *params)
 				if (!carg) goto freebufs;
 				if (!make_carg_entry(carg, 0, MP_SCHED_ENTRY_TYPE_STR, strlen(client->name), (const uint8_t *)client->name, NULL)) goto freebufs;
 				if (!make_carg_entry(carg, 1, MP_SCHED_ENTRY_TYPE_STR, strlen((const char *)client->topicbuf), client->topicbuf, NULL)) goto freebufs;
-				if (!make_carg_entry(carg, 2, MP_SCHED_ENTRY_TYPE_STR, event_data->data_total_length, client->msgbuf, NULL)) goto freebufs;
+				if (!make_carg_entry(carg, 2, MP_SCHED_ENTRY_TYPE_BYTES, event_data->data_total_length, client->msgbuf, NULL)) goto freebufs;
 				mp_sched_schedule(client->settings->mpy_data_cb, mp_const_none, carg);
 freebufs:
 				// Free the buffers

@@ -45,6 +45,7 @@
 #include "rom/tjpgd.h"
 #include "esp_heap_caps.h"
 #include "tftspi.h"
+#include "driver/ledc.h"
 
 #include "py/mpprint.h"
 #include "extmod/vfs_native.h"
@@ -3013,3 +3014,30 @@ int TFT_read_touch(int *x, int* y, uint8_t raw)
 	return 1;
 }
 
+
+//.............LCD LED .............
+void led_pwm_init() {
+	ledc_timer_config_t ledc_timer = {
+			.bit_num = LEDC_TIMER_10_BIT, // resolution of PWM duty
+			.freq_hz = 10000,              // frequency of PWM signal
+			.speed_mode = LEDC_HIGH_SPEED_MODE,   // timer mode
+			.timer_num = LEDC_TIMER_3    // timer index
+	};
+	// Set configuration of timer0 for high speed channels
+	ledc_timer_config(&ledc_timer);
+	
+	ledc_channel_config_t ledc_channel = 
+	{
+			.channel    = LEDC_CHANNEL_7,
+			.duty       = 700,
+			.gpio_num   = 32,
+			.speed_mode = LEDC_HIGH_SPEED_MODE,
+			.timer_sel  = LEDC_TIMER_3
+	};
+	ledc_channel_config(&ledc_channel);
+}
+
+void led_setBrightness(int duty) {
+	ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_7, duty);
+	ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_7);
+}

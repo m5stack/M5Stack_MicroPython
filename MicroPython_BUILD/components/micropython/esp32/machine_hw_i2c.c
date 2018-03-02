@@ -68,7 +68,7 @@ typedef struct _mp_machine_i2c_obj_t {
 
 const mp_obj_type_t machine_hw_i2c_type;
 
-static int i2c_used[I2C_MODE_MAX] = { -1, -1 };
+static int i2c_used[I2C_MODE_MAX] = { 21, 22 };
 static QueueHandle_t slave_mutex = NULL;
 static TaskHandle_t i2c_slave_task_handle[I2C_MODE_MAX] = { NULL, NULL };
 

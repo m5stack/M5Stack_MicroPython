@@ -723,4 +723,7 @@ int compile_font_file(char *fontfile, uint8_t dbg);
  */
 void getFontCharacters(uint8_t *buf);
 
+void led_pwm_init();
+void led_setBrightness(int duty);
+
 #endif

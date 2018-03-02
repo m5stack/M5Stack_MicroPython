@@ -1,7 +1,7 @@
 menu "MicroPython"
     config MICROPY_HW_BOARD_NAME
         string "Board name"
-        default "ESP32 board"
+        default "M5Stack"
         help
         Hardware board mame
 
@@ -198,7 +198,7 @@ menu "MicroPython"
     menu "Modules"
 	    config MICROPY_PY_FRAMEBUF
 	        bool "Enable framebuffer"
-	        default n
+	        default y
 	        help
 	        Include framebuffer module into build
 	
@@ -216,7 +216,7 @@ menu "MicroPython"
 	
 	    config MICROPY_USE_DISPLAY
 	        bool "Use Display module"
-	        default n
+	        default y
 	        help
 	        Include Display module into build
 	        Display module includes support for various SPI TFT displays
@@ -258,7 +258,7 @@ menu "MicroPython"
 	
 	    config MICROPY_USE_CURL
 	        bool "Use Curl module"
-	        default n
+	        default y
 	        help
 	        Include CURL module into build
 	        Using CURLmodule will add ~230 KB to your flash code size
@@ -299,7 +299,7 @@ menu "MicroPython"
 	
 	    config MICROPY_USE_MQTT
 	        bool "Use Mqtt module"
-	        default n
+	        default y
 	        help
 	        Include Mqtt module into build
 	
@@ -322,7 +322,7 @@ menu "MicroPython"
 
 		    config MQTT_BUFFER_SIZE_BYTE
 		        int "MQTT send/receive buffer size"
-		        default 256
+		        default 2048
 		        range 256 2048
 		        help
 			        Send/Receive buffer size in bytes
@@ -332,7 +332,7 @@ menu "MicroPython"
 
 		    config MQTT_MAX_PAYLOAD_SIZE
 		        int "MQTT max payload size"
-		        default 2048
+		        default 4094
 		        range MQTT_BUFFER_SIZE_BYTE 16384
 		        help
 			        Maximum payload size which can be received
@@ -397,7 +397,7 @@ menu "MicroPython"
 		
 			choice
 			    prompt "SD Card mode"
-			    default SDCARD_MODE3
+			    default SDCARD_MODE1
 			    help
 			        Select SD Card operating mode
 			
@@ -414,7 +414,7 @@ menu "MicroPython"
             int "CLK pin"
             depends on SDCARD_MODE1
             range 1 32
-            default 14
+            default 18
             help
             Pin used as SPI CLK
 
@@ -422,7 +422,7 @@ menu "MicroPython"
             int "MOSI pin"
             depends on SDCARD_MODE1
             range 1 32
-            default 15
+            default 23
             help
             Pin used as SPI MOSI
 
@@ -430,7 +430,7 @@ menu "MicroPython"
             int "MISO pin"
             depends on SDCARD_MODE1
             range 1 32
-            default 2
+            default 19
             help
             Pin used as SPI MISO
 
@@ -438,7 +438,7 @@ menu "MicroPython"
             int "CS pin"
             depends on SDCARD_MODE1
             range 1 32
-            default 13
+            default 4
             help
             Pin used as SPI CS
     endmenu
