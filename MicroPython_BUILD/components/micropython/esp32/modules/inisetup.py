@@ -9,14 +9,11 @@ import sys
 sys.path[1] = '/flash/lib'
 
 # ---------- M5Cloud ------------
-M5Cloud_Enable = True
-
-if M5Cloud_Enable:
+if True:
     from m5stack import lcd, buttonA, buttonB
     if buttonB.isPressed():
         lcd.println('On: OFF-LINE Mode', color=lcd.ORANGE)
-    elif not buttonA.isPressed():
-        lcd.println('On: M5Cloud Mode', color=0xCCCCCC)
+    else:
         import wifisetup
         import m5cloud
 """)
@@ -25,8 +22,12 @@ if M5Cloud_Enable:
         f.write("""\
 from m5stack import lcd
 
-#lcd.clear()
-#lcd.print("Hello world!")
+'''
+lcd.clear()
+lcd.setCursor(0, 0)
+lcd.setColor(lcd.WHITE)
+lcd.print("Hello world!")
+'''
 """)
 
     time.sleep(0.1)

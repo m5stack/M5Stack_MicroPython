@@ -330,7 +330,7 @@ STATIC mp_obj_t display_tft_init(mp_uint_t n_args, const mp_obj_t *pos_args, mp_
 	// }
 
     _fg = intToColor(iTFT_WHITE);
-	// bcklOn(&self->dconfig);
+	bcklOn(&self->dconfig);
     led_pwm_init();
 
     return mp_const_none;
@@ -965,10 +965,6 @@ STATIC mp_obj_t display_tft_println(size_t n_args, const mp_obj_t *pos_args, mp_
     display_tft_print(n_args, pos_args, kw_args);
     TFT_print("\r\n", TFT_X, TFT_Y);
 
-    // mp_obj_t tuple[2];
-    // tuple[0] = mp_obj_new_int(TFT_X);
-    // tuple[1] = mp_obj_new_int(TFT_Y);
-    // return mp_obj_new_tuple(2, tuple);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(display_tft_println_obj, 1, display_tft_println);
@@ -1313,39 +1309,39 @@ STATIC mp_obj_t display_tft_getWinSize(size_t n_args, const mp_obj_t *pos_args, 
     return mp_obj_new_tuple(2, tuple);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(display_tft_getWinSize_obj, 0, display_tft_getWinSize);
-
+#if 0
 //------------------------------------------------------------------------------------------------
-// STATIC mp_obj_t display_tft_setCalib(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+STATIC mp_obj_t display_tft_setCalib(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
 
-//     const mp_arg_t allowed_args[] = {
-//         { MP_QSTR_calx, MP_ARG_INT, { .u_int = 0 } },
-//         { MP_QSTR_caly, MP_ARG_INT, { .u_int = 0 } },
-//     };
-//     display_tft_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
-//     if (setupDevice(self)) return mp_const_none;
+    const mp_arg_t allowed_args[] = {
+        { MP_QSTR_calx, MP_ARG_INT, { .u_int = 0 } },
+        { MP_QSTR_caly, MP_ARG_INT, { .u_int = 0 } },
+    };
+    display_tft_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
+    if (setupDevice(self)) return mp_const_none;
 
-// 	mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
-//     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+	mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-//     if (self->tp_type == TOUCH_TYPE_NONE) {
-//         return mp_const_none;
-//     }
+    if (self->tp_type == TOUCH_TYPE_NONE) {
+        return mp_const_none;
+    }
 
-//     if (args[0].u_int == 0) {
-// 		if (self->tp_type == TOUCH_TYPE_XPT2046) self->tp_calx = TP_CALX_XPT2046;
-// 		else self->tp_calx = TP_CALX_STMPE610;
-//     }
-//     else self->tp_calx = args[0].u_int;
+    if (args[0].u_int == 0) {
+		if (self->tp_type == TOUCH_TYPE_XPT2046) self->tp_calx = TP_CALX_XPT2046;
+		else self->tp_calx = TP_CALX_STMPE610;
+    }
+    else self->tp_calx = args[0].u_int;
 
-//     if (args[0].u_int == 0) {
-// 		if (self->tp_type == TOUCH_TYPE_XPT2046) self->tp_caly = TP_CALY_XPT2046;
-// 		else self->tp_caly = TP_CALY_STMPE610;
-//     }
-//     else self->tp_caly = args[1].u_int;
-//     return mp_const_none;
-// }
-// STATIC MP_DEFINE_CONST_FUN_OBJ_KW(display_tft_setCalib_obj, 0, display_tft_setCalib);
-
+    if (args[0].u_int == 0) {
+		if (self->tp_type == TOUCH_TYPE_XPT2046) self->tp_caly = TP_CALY_XPT2046;
+		else self->tp_caly = TP_CALY_STMPE610;
+    }
+    else self->tp_caly = args[1].u_int;
+    return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(display_tft_setCalib_obj, 0, display_tft_setCalib);
+#endif
 //-------------------------------------------------------------------------------------------------
 STATIC mp_obj_t display_tft_setColor(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
 

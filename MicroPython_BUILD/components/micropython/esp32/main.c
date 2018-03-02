@@ -136,6 +136,7 @@ soft_reset:
     int res = mount_vfs(VFS_NATIVE_TYPE_SPIFLASH, VFS_NATIVE_INTERNAL_MP);
     if (res == 0) {
     	// run boot-up script 'boot.py'
+		pyexec_frozen_module("_boot.py");
         pyexec_file("boot.py");
         if (pyexec_mode_kind == PYEXEC_MODE_FRIENDLY_REPL) {
         	// Check if 'main.py' exists and run it
