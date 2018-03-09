@@ -6,7 +6,7 @@ from utime import ticks_ms
 import display as lcd
 import utils
 
-VERSION = "v0.3.5"
+VERSION = "v0.3.6"
 
 _BUTTON_A_PIN = const(39)
 _BUTTON_B_PIN = const(38)
@@ -147,6 +147,10 @@ def fimage(x, y, file):
     lcd.image(x, y, file, 0, lcd.JPG)
 
 
+def delay(ms):
+  time.sleep_ms(ms)
+
+
 # -------- M5Stack ---------
 
 # Node ID
@@ -175,4 +179,4 @@ buttonC = Button(_BUTTON_C_PIN)
 
 
 # SPEAKER
-speaker = Speaker()
+# speaker = Speaker()
