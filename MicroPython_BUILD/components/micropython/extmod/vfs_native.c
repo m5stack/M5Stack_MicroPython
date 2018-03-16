@@ -635,7 +635,8 @@ STATIC void checkBoot_py()
     	fd = fopen(VFS_NATIVE_MOUNT_POINT"/boot.py", "wb");
         if (fd != NULL) {
         	char buf[128] = {'\0'};
-        	sprintf(buf, "# This file is executed on every boot (including wake-boot from deepsleep)\nimport sys\nsys.path[1] = '/flash/lib'\n");
+        	// sprintf(buf, "# This file is executed on every boot (including wake-boot from deepsleep)\nimport sys\nsys.path[1] = '/flash/lib'\n");
+					sprintf(buf, "import inisetup\n");
         	int len = strlen(buf);
     		int res = fwrite(buf, 1, len, fd);
     		if (res != len) {
