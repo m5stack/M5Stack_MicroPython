@@ -52,3 +52,8 @@ xtensa-esp32-elf/
 xtensa-esp32-elf_psram/
 
 backup.sh
+
+MicroPython_BUILD/components/micropython/esp32/modules/mtftp.py
+MicroPython_BUILD/components/micropython/esp32/modules/m5cloud.py
+MicroPython_BUILD/components/internalfs_image/image-dev
+# MicroPython_BUILD/components/micropython/extmod/vfs_native.c
