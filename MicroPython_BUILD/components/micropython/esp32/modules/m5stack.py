@@ -156,7 +156,6 @@ print('\nDevice ID:' + node_id)
 
 # LCD
 lcd = lcd.TFT()
-# lcd.init(lcd.M5STACK, width=320, height=240, miso=19, mosi=23, clk=18, cs=14, dc=27, speed=32000000, bgr=True, rst_pin=33, spihost=lcd.HSPI, invrot=3, rot=lcd.LANDSCAPE)
 lcd.init(lcd.M5STACK, width=240, height=320, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
 lcd.clear()
 lcd.setBrightness(600)
