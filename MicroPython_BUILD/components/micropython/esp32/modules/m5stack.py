@@ -6,12 +6,12 @@ from utime import ticks_ms
 import display as lcd
 import utils
 
-VERSION = "v0.3.6"
+VERSION = "v0.3.7"
 
 _BUTTON_A_PIN = const(39)
 _BUTTON_B_PIN = const(38)
 _BUTTON_C_PIN = const(37)
-_SPEAKER_PIN = const(25)
+_SPEAKER_PIN  = const(25)
 
 
 class Button:
@@ -97,7 +97,7 @@ class Button:
       return True
     else:
       return False
-  
+
 
   def releasedFor(self, timeout, callback=None):
     self._timeout = timeout * 1000 # second
@@ -114,32 +114,28 @@ class Button:
 
 class Speaker:
   def __init__(self, pin=25, volume=2):
-    self.pin = machine.PWM(machine.Pin(pin))
+    self.pwm = machine.PWM(machine.Pin(pin), 1, 0, 0)
+    self._timer = 0
     self._volume = volume*10
-    self.pin.duty(0)
-    self._timer = machine.Timer(3)
 
   def _timeout_cb(self, timer):
-    self.pin.duty(0)
+    self._timer.deinit()
+    self.pwm.duty(0)
+    self.pwm.deinit()
 
   def tone(self, freq=1800, timeout=200):
-    self.pin.freq(freq)
-    self.pin.duty(self._volume)
+    self.pwm.init(freq=freq, duty=self._volume)
     if timeout > 0:
+      self._timer = machine.Timer(3)
       self._timer.init(period=timeout, mode=self._timer.ONE_SHOT, callback=self._timeout_cb)   
 
   def volume(self, val):
     self._volume = val * 10
 
 
-
+# 
 def fimage(x, y, file):
   if file[:3] == '/sd':
-    # try:
-    #   os.umountsd()
-    # except:
-    #   pass
-    # os.mountsd()
     utils.filecp(file, '/flash/fcache', blocksize=4096)
     lcd.image(x, y, '/flash/fcache', 0, lcd.JPG)
     os.remove('/flash/fcache')
@@ -151,7 +147,7 @@ def delay(ms):
   time.sleep_ms(ms)
 
 
-# -------- M5Stack ---------
+# ------------------ M5Stack -------------------
 
 # Node ID
 node_id = ubinascii.hexlify(machine.unique_id()).decode('utf-8')
@@ -160,7 +156,6 @@ print('\nDevice ID:' + node_id)
 
 # LCD
 lcd = lcd.TFT()
-# lcd.init(lcd.M5STACK, width=320, height=240, miso=19, mosi=23, clk=18, cs=14, dc=27, speed=32000000, bgr=True, rst_pin=33, spihost=lcd.HSPI, invrot=3, rot=lcd.LANDSCAPE)
 lcd.init(lcd.M5STACK, width=240, height=320, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
 lcd.clear()
 lcd.setBrightness(600)
@@ -179,4 +174,4 @@ buttonC = Button(_BUTTON_C_PIN)
 
 
 # SPEAKER
-# speaker = Speaker()
+speaker = Speaker()

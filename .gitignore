@@ -56,4 +56,8 @@ backup.sh
 MicroPython_BUILD/components/micropython/esp32/modules/mtftp.py
 MicroPython_BUILD/components/micropython/esp32/modules/m5cloud.py
 MicroPython_BUILD/components/internalfs_image/image-dev
+<<<<<<< HEAD
+=======
+# MicroPython_BUILD/components/micropython/extmod/vfs_native.c
+>>>>>>> m5stack-dev
 MicroPython_BUILD/firmware

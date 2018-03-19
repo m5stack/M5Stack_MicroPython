@@ -38,6 +38,7 @@
 #include "esp_log.h"
 #include "driver/periph_ctrl.h"
 #include "esp_ota_ops.h"
+#include "esp_pm.h"
 
 #include "py/stackctrl.h"
 #include "py/nlr.h"
@@ -84,11 +85,40 @@ STATIC uint8_t *mp_task_heap;
 
 int MainTaskCore = 0;
 
+#include "driver/uart.h"
+#include "rom/uart.h"
 //===============================
 void mp_task(void *pvParameter) {
     volatile uint32_t sp = (uint32_t)get_sp();
 
-	#ifdef CONFIG_MICROPY_USE_TASK_WDT
+    uart_config_t uartcfg = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 0,
+		.use_ref_tick = true
+    };
+    uart_param_config(UART_NUM_0, &uartcfg);
+   	uart_set_baudrate(UART_NUM_0, CONFIG_CONSOLE_UART_BAUDRATE);
+
+    // esp-idf PM bug!
+	#if defined(CONFIG_PM_ENABLE) && !defined(CONFIG_PM_DFS_INIT_AUTO) && defined(CONFIG_ESP32_DEFAULT_CPU_FREQ_240)
+    esp_pm_config_esp32_t pm_config;
+	pm_config.max_cpu_freq = RTC_CPU_FREQ_160M;
+   	pm_config.min_cpu_freq = RTC_CPU_FREQ_XTAL;
+   	pm_config.light_sleep_enable = false;
+   	esp_pm_configure(&pm_config);
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_160M);
+   	uart_set_baudrate(UART_NUM_0, CONFIG_CONSOLE_UART_BAUDRATE);
+	pm_config.max_cpu_freq = RTC_CPU_FREQ_240M;
+   	esp_pm_configure(&pm_config);
+    rtc_clk_cpu_freq_set(RTC_CPU_FREQ_240M);
+   	uart_set_baudrate(UART_NUM_0, CONFIG_CONSOLE_UART_BAUDRATE);
+	#endif
+
+    #ifdef CONFIG_MICROPY_USE_TASK_WDT
     // Enable watchdog for MicroPython main task
     esp_task_wdt_init(CONFIG_TASK_WDT_TIMEOUT_S, false);
     esp_task_wdt_add(MainTaskHandle);
@@ -134,6 +164,13 @@ soft_reset:
 
     // === Mount internal flash file system ===
     int res = mount_vfs(VFS_NATIVE_TYPE_SPIFLASH, VFS_NATIVE_INTERNAL_MP);
+
+	#if CONFIG_BOOT_SET_LED >= 0
+    // Deactivate boot led
+	gpio_pad_select_gpio(CONFIG_BOOT_SET_LED);
+	GPIO_OUTPUT_SET(CONFIG_BOOT_SET_LED, CONFIG_BOOT_LED_ON ^ 1);
+	#endif
+
     if (res == 0) {
     	// run boot-up script 'boot.py'
 		pyexec_frozen_module("_boot.py");
@@ -160,7 +197,7 @@ soft_reset:
 	#if CONFIG_FREERTOS_UNICORE
     	printf("\nFreeRTOS running only on FIRST CORE.\n");
 	#else
-		#if CONFIG_SPIRAM_SUPPORT
+		#if CONFIG_MICROPY_USE_BOTH_CORES
     		printf("\nFreeRTOS running on BOTH CORES, MicroPython task running on both cores.\n");
 		#else
     		printf("\nFreeRTOS running on BOTH CORES, MicroPython task started on App Core.\n");
@@ -227,7 +264,7 @@ soft_reset:
 void micropython_entry(void) {
     nvs_flash_init();
 
-    // === Set esp32 log levels while running MicroPython ===
+	// === Set esp32 log levels while running MicroPython ===
 	esp_log_level_set("*", CONFIG_MICRO_PY_LOG_LEVEL);
 	esp_log_level_set("wifi", 1);
 	esp_log_level_set("rmt", 1);

@@ -8,9 +8,6 @@ COMPONENT_ADD_INCLUDEDIRS := .  genhdr py esp32 lib lib/utils lib/mp-readline ex
 							 lib/timeutils  lib/berkeley-db-1.xx/include lib/berkeley-db-1.xx/btree \
 							 lib/berkeley-db-1.xx/db lib/berkeley-db-1.xx/hash lib/berkeley-db-1.xx/man lib/berkeley-db-1.xx/mpool lib/berkeley-db-1.xx/recno \
 							 ../curl/include ../curl/lib ../zlib ../libssh2/include ../espmqtt/include
-ifdef CONFIG_MICROPY_USE_MAIL
-COMPONENT_ADD_INCLUDEDIRS += ../quickmail
-endif
 
 COMPONENT_PRIV_INCLUDEDIRS := .  genhdr py esp32 lib
 
@@ -103,10 +100,6 @@ MP_EXTRA_INC += -I$(ESPCOMP)/openssl/include
 MP_EXTRA_INC += -I$(ESPCOMP)/app_update/include
 MP_EXTRA_INC += -I$(ESPCOMP)/mdns/include
 
-ifdef CONFIG_MICROPY_USE_MAIL
-MP_EXTRA_INC += -I$(PROJECT_PATH)/components/quickmail
-endif
-
 ifdef CONFIG_MICROPY_USE_BLUETOOTH
 MP_EXTRA_INC += -I$(ESPCOMP)/bt/include
 MP_EXTRA_INC += -I$(ESPCOMP)/bt/bluedroid/api/include
@@ -173,6 +166,7 @@ SRC_C =  $(addprefix esp32/,\
 	machine_neopixel.c \
 	machine_dht.c \
 	machine_ow.c \
+	machine_i2s.c \
 	)
 
 ifdef CONFIG_MICROPY_USE_DISPLAY
@@ -251,6 +245,7 @@ LIBS_SRC_C = $(addprefix esp32/libs/,\
 	ftp.c \
 	websrv.c \
 	libGSM.c \
+	curl_mail.c \
 	ow/owb_rmt.c \
 	ow/owb.c \
 	ow/ds18b20.c \

@@ -172,9 +172,9 @@
 #ifdef CONFIG_MICROPY_USE_WEBSOCKETS
 #define MICROPY_PY_WEBSOCKET                (1)
 #else
-#define MICROPY_PY_WEBSOCKET                (0)
+#define MICROPY_PY_WEBSOCKET                (1)
 #endif
-#define MICROPY_PY_OS_DUPTERM      			(0)
+#define MICROPY_PY_OS_DUPTERM      			(1)
 #define MICROPY_PY_WEBREPL   		        (0)
 
 #ifdef CONFIG_MICROPY_PY_FRAMEBUF
