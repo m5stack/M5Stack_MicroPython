@@ -1349,7 +1349,6 @@ STATIC mp_obj_t display_tft_setColor(size_t n_args, const mp_obj_t *pos_args, mp
         { MP_QSTR_color,                    MP_ARG_INT, { .u_int = -1 } },
         { MP_QSTR_bcolor,                   MP_ARG_INT, { .u_int = -1 } },
     };
-    display_tft_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all(n_args - 1, pos_args + 1, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 

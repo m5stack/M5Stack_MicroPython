@@ -905,6 +905,7 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_OBJ_NEW_QSTR(MP_QSTR_Neopixel),			MP_ROM_PTR(&machine_neopixel_type) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_DHT),					MP_ROM_PTR(&machine_dht_type) },
     { MP_OBJ_NEW_QSTR(MP_QSTR_Onewire),				MP_ROM_PTR(&machine_onewire_type) },
+<<<<<<< HEAD
 
 	// Constants
 	{ MP_ROM_QSTR(MP_QSTR_LOG_NONE),				MP_ROM_INT(ESP_LOG_NONE) },
@@ -916,6 +917,9 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
 	{ MP_ROM_QSTR(MP_QSTR_EXT1_ANYHIGH),			MP_ROM_INT(ESP_EXT1_WAKEUP_ANY_HIGH) },
 	{ MP_ROM_QSTR(MP_QSTR_EXT1_ALLLOW),				MP_ROM_INT(ESP_EXT1_WAKEUP_ALL_LOW) },
 	{ MP_ROM_QSTR(MP_QSTR_EXT1_ANYLOW),				MP_ROM_INT(EXT1_WAKEUP_ALL_HIGH) },
+=======
+    { MP_OBJ_NEW_QSTR(MP_QSTR_I2S),				MP_ROM_PTR(&machine_i2s_type) },
+>>>>>>> i2s
 };
 STATIC MP_DEFINE_CONST_DICT(machine_module_globals, machine_module_globals_table);
 
