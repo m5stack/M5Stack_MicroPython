@@ -49,6 +49,7 @@ extern const mp_obj_type_t machine_neopixel_type;
 extern const mp_obj_type_t machine_dht_type;
 extern const mp_obj_type_t machine_onewire_type;
 extern const mp_obj_type_t machine_ds18x20_type;
+extern const mp_obj_type_t machine_i2s_type;
 
 extern nvs_handle mpy_nvs_handle;
 
