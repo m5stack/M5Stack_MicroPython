@@ -27,7 +27,6 @@
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "driver/i2s.h"
-// #include "machine_i2s.h"
 #include "py/runtime.h"
 #include "py/mperrno.h"
 

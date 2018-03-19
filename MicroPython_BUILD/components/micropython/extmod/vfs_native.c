@@ -655,11 +655,7 @@ STATIC void checkBoot_py()
         if (fd != NULL) {
         	char buf[128] = {'\0'};
         	// sprintf(buf, "# This file is executed on every boot (including wake-boot from deepsleep)\nimport sys\nsys.path[1] = '/flash/lib'\n");
-<<<<<<< HEAD
-					sprintf(buf, "import inisetup\n");
-=======
         	sprintf(buf, "import inisetup\n");
->>>>>>> i2s
         	int len = strlen(buf);
     		int res = fwrite(buf, 1, len, fd);
     		if (res != len) {
