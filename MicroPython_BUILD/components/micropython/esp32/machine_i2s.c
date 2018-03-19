@@ -25,20 +25,16 @@
  */
 
 #include "py/obj.h"
+#include "py/objstr.h"
 #include "driver/i2s.h"
 // #include "machine_i2s.h"
 #include "py/runtime.h"
 #include "py/mperrno.h"
 
-typedef enum {
-    I2S, DAC_BUILT_IN, PDM, I2S_MERUS
-} output_mode_t;
-
 
 typedef struct {
     mp_obj_base_t base;
     i2s_port_t port;
-    output_mode_t output_mode;
     i2s_config_t config;
     i2s_channel_t num_channels;
     uint8_t volume;
@@ -46,11 +42,11 @@ typedef struct {
 
 extern const mp_obj_type_t machine_i2s_type;
 
-// STATIC mp_obj_t machine_i2s_obj_set_pin(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+
 STATIC void machine_i2s_obj_init_helper(machine_i2s_obj_t *self, size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
-    enum { ARG_mode, ARG_rate, ARG_bits, ARG_channel_format, ARG_comm_format, ARG_dma_count, ARG_dma_len};
+    enum { ARG_mode, ARG_rate, ARG_bits, ARG_channel_format, ARG_data_format, ARG_dma_count, ARG_dma_len};
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_mode,           MP_ARG_KW_ONLY  | MP_ARG_INT, {.u_int = DAC_BUILT_IN} },
+        { MP_QSTR_mode,           MP_ARG_KW_ONLY  | MP_ARG_INT, {.u_int = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN} },
         { MP_QSTR_rate,           MP_ARG_KW_ONLY  | MP_ARG_INT, {.u_int = 16000} },
         { MP_QSTR_bits,           MP_ARG_KW_ONLY  | MP_ARG_INT, {.u_int = 16} },
         { MP_QSTR_channel_format, MP_ARG_KW_ONLY  | MP_ARG_INT, {.u_int = I2S_CHANNEL_FMT_RIGHT_LEFT} },
@@ -79,7 +75,7 @@ STATIC void machine_i2s_obj_init_helper(machine_i2s_obj_t *self, size_t n_args, 
         mp_raise_ValueError("I2S: failed to enable");
     }
 
-    if ((self->config.mode & I2S_MODE_DAC_BUILT_IN) || (self->config.mod & I2S_MODE_PDM)) {
+    if ((self->config.mode & I2S_MODE_DAC_BUILT_IN) || (self->config.mode & I2S_MODE_PDM)) {
         i2s_set_pin(self->port, NULL);
         i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN); // default
     } 
@@ -112,19 +108,35 @@ STATIC mp_obj_t machine_i2s_make_new(const mp_obj_type_t *type, size_t n_args, s
 }
 
 //----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_obj_init(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
+STATIC mp_obj_t machine_i2s_init(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) {
     machine_i2s_obj_init_helper(args[0], n_args - 1, args + 1, kw_args);
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2s_init_obj, 1, machine_i2s_obj_init);
+MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2s_init_obj, 2, machine_i2s_init);
 
 //----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_obj_deinit(mp_obj_t self_in) {
+STATIC mp_obj_t machine_i2s_deinit(mp_obj_t self_in) {
     const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
     i2s_driver_uninstall(self->port);
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_1(machine_i2s_deinit_obj, machine_i2s_obj_deinit);
+MP_DEFINE_CONST_FUN_OBJ_1(machine_i2s_deinit_obj, machine_i2s_deinit);
+
+//----------------------------------------------------------------------
+STATIC mp_obj_t machine_i2s_start(mp_obj_t self_in) {
+    const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    i2s_start(self->port);
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_1(machine_i2s_start_obj, machine_i2s_start);
+
+//----------------------------------------------------------------------
+STATIC mp_obj_t machine_i2s_stop(mp_obj_t self_in) {
+    const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
+    i2s_stop(self->port);
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_1(machine_i2s_stop_obj, machine_i2s_stop);
 
 //-----------------------------------------------------------------------
 STATIC mp_obj_t machine_i2s_sample_rates(mp_obj_t self_in, mp_obj_t rate) {
@@ -175,6 +187,52 @@ STATIC mp_obj_t machine_i2s_set_dac_mode(mp_obj_t self_in, mp_obj_t dac_mode) {
 }
 MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_set_dac_mode_obj, machine_i2s_set_dac_mode);
 
+//-----------------------------------------------------------------------
+STATIC mp_obj_t machine_i2s_set_adc_mode(mp_obj_t self_in, mp_obj_t pin) {
+    machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
+
+    uint8_t adc_pin = mp_obj_get_int(pin);    
+    uint8_t adc1_channel[] = {
+        ADC1_CHANNEL_4,     /*!< ADC1 channel 4 is GPIO32 */
+        ADC1_CHANNEL_5,     /*!< ADC1 channel 5 is GPIO33 */
+        ADC1_CHANNEL_6,     /*!< ADC1 channel 6 is GPIO34 */
+        ADC1_CHANNEL_7,     /*!< ADC1 channel 7 is GPIO35 */
+        ADC1_CHANNEL_0,     /*!< ADC1 channel 0 is GPIO36 */
+        ADC1_CHANNEL_1,     /*!< ADC1 channel 1 is GPIO37 */
+        ADC1_CHANNEL_2,     /*!< ADC1 channel 2 is GPIO38 */
+        ADC1_CHANNEL_3      /*!< ADC1 channel 3 is GPIO39 */
+    };
+
+    if (adc_pin < 32 || adc_pin > 39) {
+        mp_raise_ValueError("built-in ADC functions are only supported ADC1 channel.");
+    }
+
+    if (self->port == I2S_NUM_0) {
+        i2s_set_adc_mode(ADC_UNIT_1, (adc1_channel_t)(adc1_channel[adc_pin - 32]));
+    } else {
+        mp_raise_ValueError("built-in ADC functions are only supported on I2S0 for current ESP32 chip.");
+    }
+
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_set_adc_mode_obj, machine_i2s_set_adc_mode);
+
+//-----------------------------------------------------------------------
+STATIC mp_obj_t machine_i2s_adc_enable(mp_obj_t self_in, mp_obj_t enable) {
+    machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
+
+    uint8_t _enable = mp_obj_get_int(enable);
+
+    if (_enable) {
+        i2s_adc_enable(self->port);
+    } else {
+        i2s_adc_disable(self->port);
+    }
+
+    return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_adc_enable_obj, machine_i2s_adc_enable);
+
 //-------------------------------------------------------------------------------------------------
 STATIC mp_obj_t machine_i2s_set_pin(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
 
@@ -215,14 +273,14 @@ STATIC mp_obj_t machine_i2s_set_pin(size_t n_args, const mp_obj_t *pos_args, mp_
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(machine_i2s_set_pin_obj, 3, machine_i2s_set_pin);
 
 //-----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_obj_set_volume(mp_obj_t self_in, mp_obj_t volume) {
+STATIC mp_obj_t machine_i2s_set_volume(mp_obj_t self_in, mp_obj_t volume) {
     machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     self->volume = mp_obj_get_int(volume);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_obj_set_volume_obj, machine_i2s_obj_set_volume);
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_set_volume_obj, machine_i2s_set_volume);
 
 //----------------------------------------------------------------------
 STATIC mp_obj_t machine_i2s_write(const mp_obj_t self_in, mp_obj_t buf_in) {
@@ -261,7 +319,7 @@ STATIC mp_obj_t machine_i2s_read(const mp_obj_t self_in, mp_obj_t buf_len) {
 MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_read_obj, machine_i2s_read);
 
 //----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_obj_stream_out(const mp_obj_t self_in, mp_obj_t buf_in) {
+STATIC mp_obj_t machine_i2s_stream_out(const mp_obj_t self_in, mp_obj_t buf_in) {
     const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     mp_buffer_info_t bufinfo;
@@ -269,6 +327,12 @@ STATIC mp_obj_t machine_i2s_obj_stream_out(const mp_obj_t self_in, mp_obj_t buf_
 
     uint8_t buf_bytes_per_sample = (self->config.bits_per_sample / 8);
     uint32_t num_samples = bufinfo.len / buf_bytes_per_sample / self->num_channels;
+
+    // support only 16 bit buffers for now
+    if(self->config.bits_per_sample != I2S_BITS_PER_SAMPLE_16BIT) {
+        mp_raise_ValueError("support only 16 bit buffers for now");
+        return mp_const_none;
+    }
 
     // pointer to left / right sample position
     char *ptr_l = bufinfo.buf;
@@ -283,7 +347,7 @@ STATIC mp_obj_t machine_i2s_obj_stream_out(const mp_obj_t self_in, mp_obj_t buf_
     TickType_t max_wait = 20 / portTICK_PERIOD_MS; // portMAX_DELAY = bad idea
     for (int i = 0; i < num_samples; i++) {
 
-        if(self->output_mode == DAC_BUILT_IN) {
+        if (self->config.mode & I2S_MODE_DAC_BUILT_IN) {
             // assume 16 bit src bit_depth
             short left = *(short *) ptr_l;
             short right = *(short *) ptr_r;
@@ -298,7 +362,7 @@ STATIC mp_obj_t machine_i2s_obj_stream_out(const mp_obj_t self_in, mp_obj_t buf_
             uint32_t sample = (uint16_t) left;
             sample = (sample << 16 & 0xffff0000) | ((uint16_t) right);
 
-            bytes_pushed = i2s_push_sample(self->port, (const char*) &sample, max_wait);
+            bytes_pushed = i2s_push_sample(self->port, (const char*) &sample, 0);
         } else {
 
             switch (self->config.bits_per_sample)
@@ -336,23 +400,27 @@ STATIC mp_obj_t machine_i2s_obj_stream_out(const mp_obj_t self_in, mp_obj_t buf_
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_obj_stream_out_obj, machine_i2s_obj_stream_out);
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_stream_out_obj, machine_i2s_stream_out);
 
 //----------------------------------------------------------------------
 STATIC const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
+
     // Standard methods
     { MP_ROM_QSTR(MP_QSTR_init),              MP_ROM_PTR(&machine_i2s_init_obj)},
     { MP_ROM_QSTR(MP_QSTR_deinit),            MP_ROM_PTR(&machine_i2s_deinit_obj) },
+    { MP_ROM_QSTR(MP_QSTR_start),             MP_ROM_PTR(&machine_i2s_start_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stop),              MP_ROM_PTR(&machine_i2s_stop_obj) },
     { MP_ROM_QSTR(MP_QSTR_sample_rate),       MP_ROM_PTR(&machine_i2s_sample_rates_obj) },
     { MP_ROM_QSTR(MP_QSTR_bits),              MP_ROM_PTR(&machine_i2s_bits_per_sample_obj) },
-    { MP_ROM_QSTR(MP_QSTR_nchannel),          MP_ROM_PTR(&machine_i2s_set_channel_obj) },
+    { MP_ROM_QSTR(MP_QSTR_nchannels),         MP_ROM_PTR(&machine_i2s_set_channel_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_pin),           MP_ROM_PTR(&machine_i2s_set_pin_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_dac_mode),      MP_ROM_PTR(&machine_i2s_set_dac_mode_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_adc_mode),      MP_ROM_PTR(&machine_i2s_set_adc_mode_obj) },
+    { MP_ROM_QSTR(MP_QSTR_adc_enable),        MP_ROM_PTR(&machine_i2s_adc_enable_obj) },
     { MP_ROM_QSTR(MP_QSTR_write),             MP_ROM_PTR(&machine_i2s_write_obj) },
     { MP_ROM_QSTR(MP_QSTR_read),              MP_ROM_PTR(&machine_i2s_read_obj) },
-
-    { MP_ROM_QSTR(MP_QSTR_volume),            MP_ROM_PTR(&machine_i2s_obj_set_volume_obj) },
-    { MP_ROM_QSTR(MP_QSTR_stream_out),        MP_ROM_PTR(&machine_i2s_obj_stream_out_obj) },
+    { MP_ROM_QSTR(MP_QSTR_volume),            MP_ROM_PTR(&machine_i2s_set_volume_obj) },
+    { MP_ROM_QSTR(MP_QSTR_stream_out),        MP_ROM_PTR(&machine_i2s_stream_out_obj) },
 
     // Constants
     { MP_ROM_QSTR(MP_QSTR_I2S_NUM_0),         MP_ROM_INT(I2S_NUM_0) },
@@ -366,18 +434,18 @@ STATIC const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_MODE_ADC_BUILT_IN), MP_ROM_INT(I2S_MODE_ADC_BUILT_IN) },
     { MP_ROM_QSTR(MP_QSTR_MODE_PDM),          MP_ROM_INT(I2S_MODE_PDM) },
 
+    { MP_ROM_QSTR(MP_QSTR_CHANNEL_RIGHT_LEFT),MP_ROM_INT(I2S_CHANNEL_FMT_RIGHT_LEFT) },
+    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ALL_RIGHT), MP_ROM_INT(I2S_CHANNEL_FMT_ALL_RIGHT) },
+    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ALL_LEFT),  MP_ROM_INT(I2S_CHANNEL_FMT_ALL_LEFT) },
+    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ONLY_RIGHT),MP_ROM_INT(I2S_CHANNEL_FMT_ONLY_RIGHT) },
+    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ONLY_LEFT), MP_ROM_INT(I2S_CHANNEL_FMT_ONLY_LEFT) },
+
     { MP_ROM_QSTR(MP_QSTR_FORMAT_I2S),        MP_ROM_INT(I2S_COMM_FORMAT_I2S) },
     { MP_ROM_QSTR(MP_QSTR_FORMAT_I2S_MSB),    MP_ROM_INT(I2S_COMM_FORMAT_I2S_MSB) },
     { MP_ROM_QSTR(MP_QSTR_FORMAT_I2S_LSB),    MP_ROM_INT(I2S_COMM_FORMAT_I2S_LSB) },
     { MP_ROM_QSTR(MP_QSTR_FORMAT_PCM),        MP_ROM_INT(I2S_COMM_FORMAT_PCM) },
     { MP_ROM_QSTR(MP_QSTR_FORMAT_PCM_SHORT),  MP_ROM_INT(I2S_COMM_FORMAT_PCM_SHORT) },
     { MP_ROM_QSTR(MP_QSTR_FORMAT_PCM_LONG),   MP_ROM_INT(I2S_COMM_FORMAT_PCM_LONG) },
-    
-    { MP_ROM_QSTR(MP_QSTR_CHANNEL_RIGHT_LEFT),MP_ROM_INT(I2S_CHANNEL_FMT_RIGHT_LEFT) },
-    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ALL_RIGHT), MP_ROM_INT(I2S_CHANNEL_FMT_ALL_RIGHT) },
-    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ALL_LEFT),  MP_ROM_INT(I2S_CHANNEL_FMT_ALL_LEFT) },
-    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ONLY_RIGHT),MP_ROM_INT(I2S_CHANNEL_FMT_ONLY_RIGHT) },
-    { MP_ROM_QSTR(MP_QSTR_CHANNEL_ONLY_LEFT), MP_ROM_INT(I2S_CHANNEL_FMT_ONLY_LEFT) },
 
     { MP_ROM_QSTR(MP_QSTR_DAC_DISABLE),       MP_ROM_INT(I2S_DAC_CHANNEL_DISABLE) },
     { MP_ROM_QSTR(MP_QSTR_DAC_RIGHT_EN),      MP_ROM_INT(I2S_DAC_CHANNEL_RIGHT_EN) },
