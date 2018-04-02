@@ -485,11 +485,7 @@ int lfs_traverse(lfs_t *lfs, int (*cb)(void*, lfs_block_t), void *data);
 int lfs_deorphan(lfs_t *lfs);
 
 
-// setup free lookahead
 void lfs_setup_free(lfs_t *lfs);
-
-// Find the first free (unused) block
-// return its number in *block
 int lfs_alloc(lfs_t *lfs, lfs_block_t *block);
 
 #endif

@@ -2127,18 +2127,6 @@ static int lfs_deinit(lfs_t *lfs) {
     return 0;
 }
 
-//-----------------------------
-void lfs_setup_free(lfs_t *lfs)
-{
-    // setup free lookahead
-    memset(lfs->free.buffer, 0, lfs->cfg->lookahead/8);
-    lfs->free.begin = 0;
-    lfs->free.size = 0;
-    lfs->free.off = 0;
-    lfs_alloc_ack(lfs);
-}
-
-//--------------------------------------------------------
 int lfs_format(lfs_t *lfs, const struct lfs_config *cfg) {
     int err = lfs_init(lfs, cfg);
     if (err) {
@@ -2217,6 +2205,17 @@ int lfs_format(lfs_t *lfs, const struct lfs_config *cfg) {
 
     lfs_alloc_ack(lfs);
     return lfs_deinit(lfs);
+}
+
+//-----------------------------
+void lfs_setup_free(lfs_t *lfs)
+{
+    // setup free lookahead
+    memset(lfs->free.buffer, 0, lfs->cfg->lookahead/8);
+    lfs->free.begin = 0;
+    lfs->free.size = 0;
+    lfs->free.off = 0;
+    lfs_alloc_ack(lfs);
 }
 
 //-------------------------------------------------------
