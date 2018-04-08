@@ -20,6 +20,9 @@
 #   makefatfs         - create FatFS image
 #   flashfatfs        - create and flash FatFS image to ESP32
 #   copyfatfs         - flash prebuilt FatFS image to ESP32
+#   makelfsfs         - create LittleFS image
+#   flashlfsfs        - create and flash LittleFS image to ESP32
+#   copylfsfs         - flash prebuilt LittleFS image to ESP32
 #   size              - display static memory footprint of the firmware
 #   size-components   - display detailed memory footprint of the firmware
 #   size-files        - display detailed memory footprint of the firmware
@@ -45,7 +48,7 @@
 
 
 #=======================
-TOOLS_VER=ver20180321.id
+TOOLS_VER=ver20180404.id
 #=======================
 
 # -----------------------------
