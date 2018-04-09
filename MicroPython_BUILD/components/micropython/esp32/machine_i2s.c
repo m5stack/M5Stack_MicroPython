@@ -36,7 +36,7 @@ typedef struct {
     i2s_port_t port;
     i2s_config_t config;
     i2s_channel_t num_channels;
-    uint8_t volume;
+    uint16_t volume;
 } machine_i2s_obj_t;
 
 extern const mp_obj_type_t machine_i2s_type;
@@ -62,7 +62,8 @@ STATIC void machine_i2s_obj_init_helper(machine_i2s_obj_t *self, size_t n_args, 
     self->config.bits_per_sample = (i2s_bits_per_sample_t)args[ARG_bits].u_int;
     self->config.channel_format = (i2s_channel_fmt_t)args[ARG_channel_format].u_int;
     self->config.communication_format = (i2s_comm_format_t)args[ARG_data_format].u_int;
-    self->config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,  //Interrupt level 1
+    // self->config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL3,
+    self->config.intr_alloc_flags = 0,
     self->config.dma_buf_count = (int)args[ARG_dma_count].u_int;
     self->config.dma_buf_len = (int)args[ARG_dma_len].u_int;
     self->config.use_apll = 0;
@@ -252,7 +253,7 @@ STATIC mp_obj_t machine_i2s_set_pin(size_t n_args, const mp_obj_t *pos_args, mp_
     mp_int_t data_in_num  = -1;
 
     if (args[3].u_int >= 0) {
-    	mp_int_t data_in_num = args[3].u_int;
+    	data_in_num = args[3].u_int;
     }
 
     i2s_pin_config_t pin_config = {
@@ -282,50 +283,29 @@ STATIC mp_obj_t machine_i2s_set_volume(mp_obj_t self_in, mp_obj_t volume) {
 MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_set_volume_obj, machine_i2s_set_volume);
 
 //----------------------------------------------------------------------
+STATIC mp_obj_t machine_i2s_read(const mp_obj_t self_in, mp_obj_t buf_len) {
+    const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
+
+    size_t _buf_len = mp_obj_get_int(buf_len);
+    vstr_t vstr;
+    vstr_init_len(&vstr, _buf_len);
+
+    if (i2s_read_bytes(self->port, (char*)vstr.buf, vstr.len, portMAX_DELAY) == ESP_FAIL) {
+        mp_raise_OSError(MP_EIO);
+        return mp_const_none;
+    }
+
+    // Return read data as string
+    return mp_obj_new_str_from_vstr(&mp_type_bytes, &vstr);
+}
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_read_obj, machine_i2s_read);
+
+//----------------------------------------------------------------------
 STATIC mp_obj_t machine_i2s_write(const mp_obj_t self_in, mp_obj_t buf_in) {
     const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
 
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(buf_in, &bufinfo, MP_BUFFER_READ);
-
-    if (i2s_write_bytes(self->port, bufinfo.buf, bufinfo.len, portMAX_DELAY) == ESP_FAIL) {
-        mp_raise_OSError(MP_EIO);
-    }
-
-    return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_write_obj, machine_i2s_write);
-
-//----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_read(const mp_obj_t self_in, mp_obj_t buf_len) {
-    const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
-
-    uint8_t *rdbuf = malloc(buf_len);
-
-    if (i2s_read_bytes(self->port, (char*)rdbuf, buf_len, portMAX_DELAY) == ESP_FAIL) {
-        mp_raise_OSError(MP_EIO);
-        return mp_const_none;
-    }
-
-    mp_obj_t res = mp_const_none;
-    if (rdbuf) res = mp_obj_new_str_of_type(&mp_type_bytes, (byte*)rdbuf, buf_len);
-    else res = mp_obj_new_str_of_type(&mp_type_bytes, (byte*)"", 0);
-
-	if (rdbuf) free(rdbuf);
-
-	return res;
-}
-MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_read_obj, machine_i2s_read);
-
-//----------------------------------------------------------------------
-STATIC mp_obj_t machine_i2s_stream_out(const mp_obj_t self_in, mp_obj_t buf_in) {
-    const machine_i2s_obj_t *self = MP_OBJ_TO_PTR(self_in);
-
-    mp_buffer_info_t bufinfo;
-    mp_get_buffer_raise(buf_in, &bufinfo, MP_BUFFER_READ);
-
-    uint8_t buf_bytes_per_sample = (self->config.bits_per_sample / 8);
-    uint32_t num_samples = bufinfo.len / buf_bytes_per_sample / self->num_channels;
 
     // support only 16 bit buffers for now
     if(self->config.bits_per_sample != I2S_BITS_PER_SAMPLE_16BIT) {
@@ -333,20 +313,24 @@ STATIC mp_obj_t machine_i2s_stream_out(const mp_obj_t self_in, mp_obj_t buf_in) 
         return mp_const_none;
     }
 
-    // pointer to left / right sample position
-    char *ptr_l = bufinfo.buf;
-    char *ptr_r = bufinfo.buf + buf_bytes_per_sample;
-    uint8_t stride = buf_bytes_per_sample * 2;
+    if (self->config.mode & I2S_MODE_DAC_BUILT_IN) {
 
-    if (self->num_channels == (i2s_channel_t)1) {
-        ptr_r = ptr_l;
-    }
+        uint8_t buf_bytes_per_sample = (self->config.bits_per_sample / 8);
+        uint32_t num_samples = bufinfo.len / buf_bytes_per_sample / self->num_channels;
 
-    int bytes_pushed = 0;
-    TickType_t max_wait = 20 / portTICK_PERIOD_MS; // portMAX_DELAY = bad idea
-    for (int i = 0; i < num_samples; i++) {
+        // pointer to left / right sample position
+        char *ptr_l = bufinfo.buf;
+        char *ptr_r = bufinfo.buf + buf_bytes_per_sample;
+        uint8_t stride = buf_bytes_per_sample * self->num_channels;;
 
-        if (self->config.mode & I2S_MODE_DAC_BUILT_IN) {
+        if (self->num_channels == (i2s_channel_t)1) {
+            ptr_r = ptr_l;
+        }
+
+        int bytes_pushed = 0;
+        TickType_t max_wait = 20 / portTICK_PERIOD_MS; // portMAX_DELAY = bad idea
+        for (int i = 0; i < num_samples; i++) {
+
             // assume 16 bit src bit_depth
             short left = *(short *) ptr_l;
             short right = *(short *) ptr_r;
@@ -360,46 +344,25 @@ STATIC mp_obj_t machine_i2s_stream_out(const mp_obj_t self_in, mp_obj_t buf_in) 
 
             uint32_t sample = (uint16_t) left;
             sample = (sample << 16 & 0xffff0000) | ((uint16_t) right);
+            bytes_pushed = i2s_push_sample(self->port, (const char*) &sample, max_wait);
 
-            bytes_pushed = i2s_push_sample(self->port, (const char*) &sample, 0);
-        } else {
-
-            switch (self->config.bits_per_sample)
-            {
-                case I2S_BITS_PER_SAMPLE_16BIT:
-                    ; // workaround
-
-                    /* low - high / low - high */
-                    const char samp32[4] = {ptr_l[0], ptr_l[1], ptr_r[0], ptr_r[1]};
-
-                    bytes_pushed = i2s_push_sample(self->port, (const char*) &samp32, max_wait);
-                    break;
-
-                case I2S_BITS_PER_SAMPLE_32BIT:
-                    ; // workaround
-
-                    const char samp64[8] = {0, 0, ptr_l[0], ptr_l[1], 0, 0, ptr_r[0], ptr_r[1]};
-                    bytes_pushed = i2s_push_sample(self->port, (const char*) &samp64, max_wait);
-                    break;
-
-                default:
-                    // ESP_LOGE(TAG, "bit depth unsupported: %d", self->config.bits_per_sample);
-                    mp_raise_ValueError("8 bit depth unsupported");
+            // DMA buffer full - retry
+            if (bytes_pushed == 0) {
+                i--;
+            } else {
+                ptr_l += stride;
+                ptr_r += stride;
             }
         }
+    } else {
 
-        // DMA buffer full - retry
-        if (bytes_pushed == 0) {
-            i--;
-        } else {
-            ptr_r += stride;
-            ptr_l += stride;
-        }
+        if (i2s_write_bytes(self->port, bufinfo.buf, bufinfo.len, 0) == ESP_FAIL) 
+            mp_raise_OSError(MP_EIO);
     }
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_stream_out_obj, machine_i2s_stream_out);
+MP_DEFINE_CONST_FUN_OBJ_2(machine_i2s_write_obj, machine_i2s_write);
 
 //----------------------------------------------------------------------
 STATIC const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
@@ -414,12 +377,11 @@ STATIC const mp_rom_map_elem_t machine_i2s_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_nchannels),         MP_ROM_PTR(&machine_i2s_set_channel_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_pin),           MP_ROM_PTR(&machine_i2s_set_pin_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_dac_mode),      MP_ROM_PTR(&machine_i2s_set_dac_mode_obj) },
-    { MP_ROM_QSTR(MP_QSTR_set_adc_mode),      MP_ROM_PTR(&machine_i2s_set_adc_mode_obj) },
+    { MP_ROM_QSTR(MP_QSTR_set_adc_pin),       MP_ROM_PTR(&machine_i2s_set_adc_mode_obj) },
     { MP_ROM_QSTR(MP_QSTR_adc_enable),        MP_ROM_PTR(&machine_i2s_adc_enable_obj) },
-    { MP_ROM_QSTR(MP_QSTR_write),             MP_ROM_PTR(&machine_i2s_write_obj) },
     { MP_ROM_QSTR(MP_QSTR_read),              MP_ROM_PTR(&machine_i2s_read_obj) },
+    { MP_ROM_QSTR(MP_QSTR_write),             MP_ROM_PTR(&machine_i2s_write_obj) },
     { MP_ROM_QSTR(MP_QSTR_volume),            MP_ROM_PTR(&machine_i2s_set_volume_obj) },
-    { MP_ROM_QSTR(MP_QSTR_stream_out),        MP_ROM_PTR(&machine_i2s_stream_out_obj) },
 
     // Constants
     { MP_ROM_QSTR(MP_QSTR_I2S_NUM_0),         MP_ROM_INT(I2S_NUM_0) },

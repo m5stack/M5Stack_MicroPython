@@ -28,6 +28,8 @@
  * THE SOFTWARE.
  */
 
+#include "sdkconfig.h"
+
 #include <string.h>
 
 #include "esp_system.h"
@@ -42,6 +44,9 @@
 #include "mpversion.h"
 #include "extmod/vfs_native.h"
 #include "machine_pin.h"
+#if CONFIG_MICROPY_FILESYSTEM_TYPE == 2
+#include "libs/littleflash.h"
+#endif
 
 //extern const mp_obj_type_t mp_fat_vfs_type;
 
@@ -105,14 +110,13 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(os_dupterm_notify_obj, os_dupterm_notify);
 //------------------------------------------------------------------
 STATIC mp_obj_t os_mount_sdcard(size_t n_args, const mp_obj_t *args)
 {
-	int res = -1;
 	if (n_args > 0) {
 		int chd = mp_obj_get_int(args[0]);
 		if (chd) {
-		    int res = mount_vfs(VFS_NATIVE_TYPE_SDCARD, VFS_NATIVE_EXTERNAL_MP);
+		    mount_vfs(VFS_NATIVE_TYPE_SDCARD, VFS_NATIVE_EXTERNAL_MP);
 		}
 	}
-	else res = mount_vfs(VFS_NATIVE_TYPE_SDCARD, NULL);
+	else mount_vfs(VFS_NATIVE_TYPE_SDCARD, NULL);
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(os_mount_sdcard_obj, 0, 1, os_mount_sdcard);
@@ -121,11 +125,11 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(os_mount_sdcard_obj, 0, 1, os_mount_s
 STATIC mp_obj_t os_umount_sdcard(void)
 {
     // umount external (sdcard) file system
-	mp_obj_t sddir = mp_obj_new_str(VFS_NATIVE_EXTERNAL_MP, strlen(VFS_NATIVE_EXTERNAL_MP), false);
+	mp_obj_t sddir = mp_obj_new_str(VFS_NATIVE_EXTERNAL_MP, strlen(VFS_NATIVE_EXTERNAL_MP));
 	mp_call_function_1(MP_OBJ_FROM_PTR(&mp_vfs_umount_obj), sddir);
 
 	// Change directory to /flash
-	sddir = mp_obj_new_str(VFS_NATIVE_INTERNAL_MP, strlen(VFS_NATIVE_INTERNAL_MP), false);
+	sddir = mp_obj_new_str(VFS_NATIVE_INTERNAL_MP, strlen(VFS_NATIVE_INTERNAL_MP));
 	mp_call_function_1(MP_OBJ_FROM_PTR(&mp_vfs_chdir_obj), sddir);
 
 	return mp_const_none;
@@ -172,6 +176,25 @@ STATIC mp_obj_t os_sdcard_config(size_t n_args, const mp_obj_t *pos_args, mp_map
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(os_sdcard_config_obj, 0, os_sdcard_config);
 
+#if CONFIG_MICROPY_FILESYSTEM_TYPE == 2
+//----------------------------------------------------------
+STATIC mp_obj_t os_trim(size_t n_args, const mp_obj_t *args)
+{
+	uint32_t nblocks = 0;
+	int noerase = 0;
+	if (n_args > 0) {
+		nblocks = mp_obj_get_int(args[0]);
+	}
+	if (n_args > 1) {
+		noerase = mp_obj_get_int(args[1]);
+	}
+	uint32_t nerased = littleFlash_trim(nblocks, noerase);
+
+	return mp_obj_new_int(nerased);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(os_trim_obj, 0, 2, os_trim);
+
+#endif
 
 //==========================================================
 STATIC const mp_rom_map_elem_t os_module_globals_table[] = {
@@ -199,6 +222,9 @@ STATIC const mp_rom_map_elem_t os_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_mountsd),			MP_ROM_PTR(&os_mount_sdcard_obj) },
     { MP_ROM_QSTR(MP_QSTR_umountsd),		MP_ROM_PTR(&os_umount_sdcard_obj) },
 	{ MP_ROM_QSTR(MP_QSTR_sdconfig),		MP_ROM_PTR(&os_sdcard_config_obj) },
+	#if CONFIG_MICROPY_FILESYSTEM_TYPE == 2
+	{ MP_ROM_QSTR(MP_QSTR_trim),			MP_ROM_PTR(&os_trim_obj) },
+	#endif
 	// Constants
 	{ MP_ROM_QSTR(MP_QSTR_SDMODE_SPI),		MP_ROM_INT(1) },
 	{ MP_ROM_QSTR(MP_QSTR_SDMODE_1LINE),	MP_ROM_INT(2) },

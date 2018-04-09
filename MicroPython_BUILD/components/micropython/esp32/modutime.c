@@ -143,7 +143,7 @@ STATIC mp_obj_t time_strftime(mp_uint_t n_args, const mp_obj_t *pos_args, mp_map
 
     strftime(str_time, 127, fmt, tm_info);
 
-    return mp_obj_new_str(str_time, strlen(str_time), false);
+    return mp_obj_new_str(str_time, strlen(str_time));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(time_strftime_obj, 1, time_strftime);
 
@@ -171,7 +171,7 @@ STATIC mp_obj_t time_mktime(mp_uint_t n_args, const mp_obj_t *pos_args, mp_map_t
 
     time_t seconds = mktime(&tm_inf);
 
-    return mp_obj_new_float((float)seconds);
+    return mp_obj_new_float((double)seconds);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_KW(time_mktime_obj, 1, time_mktime);
 
@@ -204,8 +204,8 @@ STATIC const mp_rom_map_elem_t time_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_gmtime),         MP_ROM_PTR(&time_gmtime_obj) },
     { MP_ROM_QSTR(MP_QSTR_strftime),       MP_ROM_PTR(&time_strftime_obj) },
 
-	{ MP_ROM_QSTR(MP_QSTR_sleep),          MP_ROM_PTR(&mp_utime_block_sleep_obj) },
-	{ MP_ROM_QSTR(MP_QSTR_block_sleep),    MP_ROM_PTR(&mp_utime_sleep_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_sleep),          MP_ROM_PTR(&mp_utime_sleep_obj) },
+	{ MP_ROM_QSTR(MP_QSTR_block_sleep),    MP_ROM_PTR(&mp_utime_block_sleep_obj) },
     { MP_ROM_QSTR(MP_QSTR_sleep_ms),       MP_ROM_PTR(&mp_utime_sleep_ms_obj) },
     { MP_ROM_QSTR(MP_QSTR_sleep_us),       MP_ROM_PTR(&mp_utime_sleep_us_obj) },
     { MP_ROM_QSTR(MP_QSTR_ticks_ms),       MP_ROM_PTR(&mp_utime_ticks_ms_obj) },

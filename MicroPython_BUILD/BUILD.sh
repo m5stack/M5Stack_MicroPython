@@ -20,6 +20,9 @@
 #   makefatfs         - create FatFS image
 #   flashfatfs        - create and flash FatFS image to ESP32
 #   copyfatfs         - flash prebuilt FatFS image to ESP32
+#   makelfsfs         - create LittleFS image
+#   flashlfsfs        - create and flash LittleFS image to ESP32
+#   copylfsfs         - flash prebuilt LittleFS image to ESP32
 #   size              - display static memory footprint of the firmware
 #   size-components   - display detailed memory footprint of the firmware
 #   size-files        - display detailed memory footprint of the firmware
@@ -45,7 +48,7 @@
 
 
 #=======================
-TOOLS_VER=ver20180315.id
+TOOLS_VER=ver20180408.id
 #=======================
 
 # -----------------------------
@@ -173,7 +176,7 @@ export CROSS_COMPILE=xtensa-esp32-elf-
 
 for arg in "${POSITIONAL_ARGS[@]}"
 do
-    if [ "${arg}" == "all" ] || [ "${arg}" == "flash" ] || [ "${arg}" == "makefs" ] || [ "${arg}" == "flashfs" ] || [ "${arg}" == "makefatfs" ] || [ "${arg}" == "flashfatfs" ]; then
+    if [ "${arg}" == "all" ] || [ "${arg}" == "flash" ] || [ "${arg}" == "makefs" ] || [ "${arg}" == "flashfs" ] || [ "${arg}" == "makefatfs" ] || [ "${arg}" == "flashfatfs" ] || [ "${arg}" == "makelfsfs" ] || [ "${arg}" == "flashlfsfs" ]; then
         set_partitions ${APP_SIZE}
         if [ $? -ne 0 ]; then
             exit 1

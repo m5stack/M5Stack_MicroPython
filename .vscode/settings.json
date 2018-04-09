@@ -1,6 +1,9 @@
 {
   "python.linting.enabled": false,
   "files.associations": {
-    "obj.h": "c"
+    "obj.h": "c",
+    "i2s.h": "c",
+    "runtime.h": "c",
+    "objstr.h": "c"
   }
 }

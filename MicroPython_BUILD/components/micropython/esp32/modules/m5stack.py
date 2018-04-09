@@ -6,7 +6,7 @@ from utime import ticks_ms
 import display as lcd
 import utils
 
-VERSION = "v0.3.7"
+VERSION = "v0.3.8"
 
 _BUTTON_A_PIN = const(39)
 _BUTTON_B_PIN = const(38)

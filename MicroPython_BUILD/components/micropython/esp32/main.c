@@ -103,7 +103,8 @@ void mp_task(void *pvParameter) {
     uart_param_config(UART_NUM_0, &uartcfg);
    	uart_set_baudrate(UART_NUM_0, CONFIG_CONSOLE_UART_BAUDRATE);
 
-    // esp-idf PM bug!
+   	/*
+    // ---- esp-idf PM bug! ----------------------------------------------------------------------------------------
 	#if defined(CONFIG_PM_ENABLE) && !defined(CONFIG_PM_DFS_INIT_AUTO) && defined(CONFIG_ESP32_DEFAULT_CPU_FREQ_240)
     esp_pm_config_esp32_t pm_config;
 	pm_config.max_cpu_freq = RTC_CPU_FREQ_160M;
@@ -117,6 +118,8 @@ void mp_task(void *pvParameter) {
     rtc_clk_cpu_freq_set(RTC_CPU_FREQ_240M);
    	uart_set_baudrate(UART_NUM_0, CONFIG_CONSOLE_UART_BAUDRATE);
 	#endif
+    // -------------------------------------------------------------------------------------------------------------
+	*/
 
     #ifdef CONFIG_MICROPY_USE_TASK_WDT
     // Enable watchdog for MicroPython main task
@@ -254,7 +257,9 @@ soft_reset:
     }
 	// ================================================
 
+    //ToDo: Remember the REPL mode  !!
     prepareSleepReset(0, "ESP32: soft reboot\r\n");
+    esp_restart();
 
     goto soft_reset;
 }
@@ -262,17 +267,19 @@ soft_reset:
 
 //============================
 void micropython_entry(void) {
-    nvs_flash_init();
+    ESP_LOGI("MicroPython", "[=== Started ===]");
 
 	// === Set esp32 log levels while running MicroPython ===
-	esp_log_level_set("*", CONFIG_MICRO_PY_LOG_LEVEL);
-	esp_log_level_set("wifi", 1);
-	esp_log_level_set("rmt", 1);
+	if (CONFIG_MICRO_PY_LOG_LEVEL < CONFIG_LOG_DEFAULT_LEVEL) esp_log_level_set("*", CONFIG_MICRO_PY_LOG_LEVEL);
+	esp_log_level_set("wifi", ESP_LOG_ERROR);
+	esp_log_level_set("rmt", ESP_LOG_ERROR);
 	#ifdef CONFIG_MICROPY_USE_OTA
-	esp_log_level_set("OTA_UPDATE", 4);
+	esp_log_level_set("OTA_UPDATE", ESP_LOG_DEBUG);
 	#endif
 
-	#ifdef CONFIG_MICROPY_USE_MQTT
+    nvs_flash_init();
+
+    #ifdef CONFIG_MICROPY_USE_MQTT
 	esp_log_level_set(MQTT_TAG, CONFIG_MQTT_LOG_LEVEL);
 	#endif
 	#ifdef CONFIG_MICROPY_USE_FTPSERVER

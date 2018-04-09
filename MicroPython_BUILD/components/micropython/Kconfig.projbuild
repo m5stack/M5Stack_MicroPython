@@ -115,11 +115,12 @@ menu "MicroPython"
 	        Enable system WatchDog to monitor MicroPython task 
 	
 	    config MICROPY_USE_BOTH_CORES
-	        bool "Use both cores for MicroPython tasks"
+	        bool "Use both cores for MicroPython tasks (experimental)"
 	    	depends on !FREERTOS_UNICORE
 	        default n
 	        help
-	        Run MicroPython tasks on both cores, if not selected MicroPython tasks are created pinned to one core 
+	        Run MicroPython tasks on both cores, if not selected MicroPython tasks are created pinned to one core
+	        WARNING: When enabled, it may introduce some issues with uasyncio and threads
 	
 	    config MICROPY_TASK_PRIORITY
 	        int "Main task priority"
@@ -391,6 +392,41 @@ menu "MicroPython"
 	    endmenu
 	endmenu
     menu "File systems"
+		config MICROPY_FILESYSTEM_TYPE
+		    int
+		    default 0 if MICROPY_FS_TYPE0
+		    default 1 if MICROPY_FS_TYPE1
+		    default 2 if MICROPY_FS_TYPE2
+		
+			choice
+			    prompt "Set internal filesystem type"
+			    default MICROPY_FS_TYPE0
+			    help
+			        Select internal file system type
+			
+			    config MICROPY_FS_TYPE0
+			        bool "SPIFFS"
+			    config MICROPY_FS_TYPE1
+			        bool "FatFS"
+			    config MICROPY_FS_TYPE2
+			        bool "LittleFS"
+			endchoice
+
+        config LITTLEFLASH_USE_WEAR_LEVELING
+            bool "Use LittleFS on top of ESP32 wear leveling"
+			depends on MICROPY_FILESYSTEM_TYPE = 2
+            default y
+            help
+            LittleFS will be used on top of wear leveling system.
+            This options distributes wearing of the Flash sectors evenly over the whole file system partition.
+            It is RECOMMENDED to use this option.
+            Note: LittleFS block size will be the one selected for wear leveling
+                  → Component config → Wear Levelling → Wear Levelling library sector size
+                  With block size of 4096 bytes the operations will be faster,
+                  but if lot of small files are used, more of the file system space will be wasted.
+                  Block size of 512 bytes is more suited if small files are used,
+                  but the file system operations will be slower. 
+
         config MICROPY_FATFS_MAX_OPEN_FILES
             int "Maximum number of opened files"
             range 4 24
@@ -398,18 +434,11 @@ menu "MicroPython"
             help
             Maximum number of opened files
 
-        config MICROPY_USE_SPIFFS
-            bool "Use SPIFFS"
-            default y
-            help
-            Use spiffs on spi Flash instead of FatFS
-
         config MICROPY_SDMMC_SHOW_INFO
             bool "Show SDCard/InternalFS info"
             default y
             help
             Show info after initializing SD card or internal FS
-
     endmenu
 
     menu "SD Card configuration"
