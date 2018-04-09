@@ -5,5 +5,10 @@
 # -------------------------------------------------------
 nvs,            data, nvs,     0x9000,  24K,
 phy_init,       data, phy,     0xf000,  4K,
+<<<<<<< HEAD
 MicroPython,    app,  factory, 0x10000, 1664K,
 internalfs,     data, spiffs,  ,        2368K,
+=======
+MicroPython,    app,  factory, 0x10000, 1408K,
+internalfs,     data, spiffs,  ,        1024K,
+>>>>>>> master
