@@ -17,7 +17,7 @@ class Button:
     from machine import Pin
     self._pin = Pin(pin)
     self._pin.init(Pin.IN)
-    self._pin.irq(trigger=(Pin.IRQ_FALLING|Pin.IRQ_RISING), handler=self.irq_cb)
+    self._pin.irq(self.irq_cb, (Pin.IRQ_FALLING|Pin.IRQ_RISING))
     self._wasPressed_cb = None
     self._wasReleased_cb = None
     self._releasedFor_cb = None
