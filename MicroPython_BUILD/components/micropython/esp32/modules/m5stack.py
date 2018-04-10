@@ -6,7 +6,7 @@ from utime import ticks_ms
 import display as lcd
 import utils
 
-VERSION = "v0.3.8"
+VERSION = "v0.3.9"
 
 _BUTTON_A_PIN = const(39)
 _BUTTON_B_PIN = const(38)
@@ -20,7 +20,7 @@ class Button:
     from machine import Pin
     self._pin = Pin(pin)
     self._pin.init(Pin.IN)
-    self._pin.irq(trigger=(Pin.IRQ_FALLING|Pin.IRQ_RISING), handler=self.irq_cb)
+    self._pin.irq(self.irq_cb, (Pin.IRQ_FALLING|Pin.IRQ_RISING))
     self._wasPressed_cb = None
     self._wasReleased_cb = None
     self._releasedFor_cb = None
@@ -111,7 +111,6 @@ class Button:
       self._releasedFor_cb = callback
 
 
-
 class Speaker:
   def __init__(self, pin=25, volume=2):
     self.pwm = machine.PWM(machine.Pin(pin), 1, 0, 0)
@@ -133,14 +132,13 @@ class Speaker:
     self._volume = val * 10
 
 
-# 
-def fimage(x, y, file):
+def fimage(x, y, file, type=1):
   if file[:3] == '/sd':
-    utils.filecp(file, '/flash/fcache', blocksize=4096)
-    lcd.image(x, y, '/flash/fcache', 0, lcd.JPG)
+    utils.filecp(file, '/flash/fcache', blocksize=8192)
+    lcd.image(x, y, '/flash/fcache', 0, type)
     os.remove('/flash/fcache')
   else:
-    lcd.image(x, y, file, 0, lcd.JPG)
+    lcd.image(x, y, file, 0, type)
 
 
 def delay(ms):
@@ -156,9 +154,9 @@ print('\nDevice ID:' + node_id)
 
 # LCD
 lcd = lcd.TFT()
-lcd.init(lcd.M5STACK, width=240, height=320, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
+lcd.init(lcd.M5STACK, width=240, height=320, speed=27000000, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
 lcd.clear()
-lcd.setBrightness(600)
+lcd.setBrightness(500)
 lcd.setColor(0xCCCCCC)
 lcd.println('M5Stack MicroPython '+VERSION, 0, 0)
 lcd.println('Device ID:'+node_id)
