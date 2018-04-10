@@ -1,12 +1,9 @@
 from micropython import const
-import uos as os
-import machine, ubinascii
-import utime as time
-from utime import ticks_ms
+import os, time, machine, ubinascii
 import display as lcd
 import utils
 
-VERSION = "v0.3.8"
+VERSION = "v0.3.9"
 
 _BUTTON_A_PIN = const(39)
 _BUTTON_B_PIN = const(38)
@@ -37,9 +34,9 @@ class Button:
     if self._pin == pin:
       # FALLING
       if pin_val == 0:  
-        if ticks_ms() - self._timeshoot > self._dbtime:
+        if time.ticks_ms() - self._timeshoot > self._dbtime:
           self._lastState = True
-          self._startTicks = ticks_ms()
+          self._startTicks = time.ticks_ms()
           self._event |= 0x02  # EVENT_WAS_PRESSED
           if self._wasPressed_cb:
             self._wasPressed_cb()
@@ -51,11 +48,11 @@ class Button:
           if self._wasReleased_cb:
             self._wasReleased_cb()
           if self._timeout > 0:
-            if ticks_ms() - self._startTicks > self._timeout:
+            if time.ticks_ms() - self._startTicks > self._timeout:
               self._event |= 0x08  # EVENT_RELEASED_FOR
               if self._releasedFor_cb:
                 self._releasedFor_cb()
-      self._timeshoot = ticks_ms()
+      self._timeshoot = time.ticks_ms()
 
 
   def read(self):
@@ -93,7 +90,7 @@ class Button:
   
 
   def pressedFor(self, timeout):
-    if self._lastState and ticks_ms() - self._startTicks > timeout * 1000:
+    if self._lastState and time.ticks_ms() - self._startTicks > timeout * 1000:
       return True
     else:
       return False
@@ -156,9 +153,9 @@ print('\nDevice ID:' + node_id)
 
 # LCD
 lcd = lcd.TFT()
-lcd.init(lcd.M5STACK, width=240, height=320, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
+lcd.init(lcd.M5STACK, width=240, height=320, speed=27000000, rst_pin=33, backl_pin=32, miso=19, mosi=23, clk=18, cs=14, dc=27, bgr=True, backl_on=1, invrot=3)
 lcd.clear()
-lcd.setBrightness(600)
+lcd.setBrightness(500)
 lcd.setColor(0xCCCCCC)
 lcd.println('M5Stack MicroPython '+VERSION, 0, 0)
 lcd.println('Device ID:'+node_id)

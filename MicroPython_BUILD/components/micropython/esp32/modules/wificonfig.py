@@ -122,6 +122,7 @@ routeHandlers = [
 
 def webserver_start():
 	wlan_ap = network.WLAN(network.AP_IF)
+	wlan_ap.active(False)
 	wlan_ap.active(True)
 	node_id = ubinascii.hexlify(machine.unique_id())
 	ssid_name= "M5Stack-"+node_id[-6:].decode('utf-8')
