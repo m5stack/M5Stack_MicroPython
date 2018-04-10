@@ -1,7 +1,7 @@
-import uos, time, machine
+import os, time, machine
 
 def setup():
-    uos.chdir('/flash')
+    os.chdir('/flash')
     with open("boot.py", "w") as f:
         f.write("""\
 # This file is executed on every boot (including wake-boot from deepsleep)

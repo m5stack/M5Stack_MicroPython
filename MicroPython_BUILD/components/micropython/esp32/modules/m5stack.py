@@ -1,8 +1,5 @@
 from micropython import const
-import uos as os
-import machine, ubinascii
-import utime as time
-from utime import ticks_ms
+import os, time, machine, ubinascii
 import display as lcd
 import utils
 
@@ -37,9 +34,9 @@ class Button:
     if self._pin == pin:
       # FALLING
       if pin_val == 0:  
-        if ticks_ms() - self._timeshoot > self._dbtime:
+        if time.ticks_ms() - self._timeshoot > self._dbtime:
           self._lastState = True
-          self._startTicks = ticks_ms()
+          self._startTicks = time.ticks_ms()
           self._event |= 0x02  # EVENT_WAS_PRESSED
           if self._wasPressed_cb:
             self._wasPressed_cb()
@@ -51,11 +48,11 @@ class Button:
           if self._wasReleased_cb:
             self._wasReleased_cb()
           if self._timeout > 0:
-            if ticks_ms() - self._startTicks > self._timeout:
+            if time.ticks_ms() - self._startTicks > self._timeout:
               self._event |= 0x08  # EVENT_RELEASED_FOR
               if self._releasedFor_cb:
                 self._releasedFor_cb()
-      self._timeshoot = ticks_ms()
+      self._timeshoot = time.ticks_ms()
 
 
   def read(self):
@@ -93,7 +90,7 @@ class Button:
   
 
   def pressedFor(self, timeout):
-    if self._lastState and ticks_ms() - self._startTicks > timeout * 1000:
+    if self._lastState and time.ticks_ms() - self._startTicks > timeout * 1000:
       return True
     else:
       return False
