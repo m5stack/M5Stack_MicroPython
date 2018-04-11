@@ -3,7 +3,7 @@ import machine, network, utime
 print("")
 print("Starting WiFi ...")
 sta_if = network.WLAN(network.STA_IF); sta_if.active(True)
-sta_if.connect("mySSID", "wifi_password")
+sta_if.connect("MasterHax_5G", "wittyercheese551")
 tmo = 50
 while not sta_if.isconnected():
     utime.sleep_ms(100)
