@@ -245,16 +245,9 @@ class MicroWebSrv :
 
     def Start(self, threaded=True, stackSize=8192) :
         if not self._started :
-<<<<<<< HEAD
-            # May used at AP mode
-            # if not network.WLAN().isconnected():
-            #     print("WLAN not connected!")
-            #     return
-=======
             if not network.WLAN().wifiactive():
                 print("WLAN not connected!")
                 return
->>>>>>> master
             gc.collect()
             self._server = socket.socket( socket.AF_INET,
                                           socket.SOCK_STREAM,
