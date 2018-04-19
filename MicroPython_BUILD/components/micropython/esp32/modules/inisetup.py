@@ -10,7 +10,7 @@ sys.path[1] = '/flash/lib'
 from m5stack import lcd, speaker, buttonA, buttonB, buttonC
 
 # ---------- M5Cloud ------------
-if True:
+if False:
     if buttonB.isPressed():
         lcd.println('On: OFF-LINE Mode', color=lcd.ORANGE)
     else:
