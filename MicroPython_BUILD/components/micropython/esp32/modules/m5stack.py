@@ -119,11 +119,11 @@ class Speaker:
     self.pwm.duty(0)
     self.pwm.deinit()
 
-  def tone(self, freq=1800, timeout=200):
+  def tone(self, freq=1800, duration=200):
     self.pwm.init(freq=freq, duty=self._volume)
-    if timeout > 0:
+    if duration > 0:
       self._timer = machine.Timer(3)
-      self._timer.init(period=timeout, mode=self._timer.ONE_SHOT, callback=self._timeout_cb)   
+      self._timer.init(period=duration, mode=self._timer.ONE_SHOT, callback=self._timeout_cb)   
 
   def volume(self, val):
     self._volume = val * 10
