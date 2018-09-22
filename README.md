@@ -53,7 +53,7 @@ This way many features not available in standard ESP32 MicroPython are enabled, 
 * MicroPython core based on latest build from [main Micropython repository](https://github.com/micropython/micropython)
 * added changes needed to build for ESP32 with psRAM
 * Default configuration has **2MB** of MicroPython heap, **20KB** of MicroPython stack, **~200KB** of free DRAM heap for C modules and functions
-* MicroPython can be built in **unicore** (FreeRTOS & MicroPython task running only on the first ESP32 core, or **dualcore** configuration (MicroPython task running on ESP32 **App** core)
+* MicroPython can be built in **unicore** (FreeRTOS & MicroPython task running only on the first ESP32 core) or **dualcore** configuration (MicroPython task running on ESP32 **App** core)
 * ESP32 Flash can be configured in any mode, **QIO**, **QOUT**, **DIO**, **DOUT**
 * **BUILD.sh** script is provided to make **building** MicroPython firmware as **easy** as possible
 * Internal Fat filesystem is built with esp-idf **wear leveling** driver, so there is less danger of damaging the flash with frequent writes.
