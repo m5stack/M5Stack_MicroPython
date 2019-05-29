@@ -317,6 +317,8 @@ If *debug=True* the information about compiled font will be printed.
 You can create the **c** source file from any **tft** font using the included [ttf2c_vc2003.exe](https://github.com/loboris/MicroPython_ESP32_psRAM_LoBo/tree/master/MicroPython_BUILD/components/micropython/esp32/modules_examples/tft/font_tool/) program.
 See [README](https://github.com/loboris/MicroPython_ESP32_psRAM_LoBo/tree/master/MicroPython_BUILD/components/micropython/esp32/modules_examples/tft/font_tool/README.md) for instructions.
 
+You can create **c** source file or **.fon** file from **tft** font using [online converter](https://loboris.eu/ttf2fon/).
+
 ## **Button**
 
 ---
