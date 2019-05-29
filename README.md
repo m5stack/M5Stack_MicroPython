@@ -3,6 +3,7 @@
 ## Getting Start
 
 - See LoBo MicroPython [WiKi](https://github.com/loboris/MicroPython_ESP32_psRAM_LoBo/wiki)
+- Please make sure run ```./BUILD.sh menuconfig``` choose open **MicroPython --> Modules --> Use Display module**
 
 ## Upload code
 - Use [Ampy](https://github.com/adafruit/ampy)
