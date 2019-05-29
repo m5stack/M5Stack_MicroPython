@@ -96,6 +96,7 @@ typedef struct __attribute__((__packed__)) {
 #define DISP_TYPE_ST7789V	2
 #define DISP_TYPE_ST7735	3
 #define DISP_TYPE_ST7735R	4
+#define DISP_TYPE_M5STICK	4
 #define DISP_TYPE_ST7735B	5
 #define DISP_TYPE_M5STACK	6
 #define DISP_TYPE_GENERIC	7
@@ -470,8 +471,8 @@ static const uint8_t STP7735_init[] = {
   0x06, 0x06, 0x02, 0x0F,
   10,						//     10 ms delay
   TFT_CASET  , 4      , 	// 15: Column addr set, 4 args, no delay:
-  0x00, 0x02,				//     XSTART = 2
-  0x00, 0x81,				//     XEND = 129
+  0x00, 0x1A,				//     XSTART = 2
+  0x00, 0x3C + 0x1A,				//     XEND = 129
   TFT_PASET  , 4      , 	// 16: Row addr set, 4 args, no delay:
   0x00, 0x02,				//     XSTART = 1
   0x00, 0x81,				//     XEND = 160
@@ -486,7 +487,7 @@ static const uint8_t STP7735_init[] = {
 static const uint8_t  STP7735R_init[] = {
   14,                       // 14 commands in list
   ST7735_SLPOUT ,   TFT_CMD_DELAY,	//  2: Out of sleep mode, 0 args, w/delay
-  255,						//     500 ms delay
+  120,						//     500 ms delay
   ST7735_FRMCTR1, 3      ,	//  3: Frame rate ctrl - normal mode, 3 args:
   0x01, 0x2C, 0x2D,			//     Rate = fosc/(1x2+40) * (LINE+2C+2D)
   ST7735_FRMCTR2, 3      ,	//  4: Frame rate control - idle mode, 3 args:
@@ -512,12 +513,12 @@ static const uint8_t  STP7735R_init[] = {
   0x8A, 0xEE,
   ST7735_VMCTR1 , 1      ,	// 12: Power control, 1 arg, no delay:
   0x0E,
-  TFT_INVOFF , 0      ,		// 13: Don't invert display, no args, no delay
   TFT_MADCTL , 1      ,		// 14: Memory access control (directions), 1 arg:
   0xC0,						//     row addr/col addr, bottom to top refresh, RGB order
   TFT_CMD_PIXFMT , 1+TFT_CMD_DELAY,	//  15: Set color mode, 1 arg + delay:
   0x06,								//      18-bit color 6-6-6 color format
-  10						//     10 ms delay
+  10,						//     10 ms delay
+  TFT_INVONN , 0      ,		// 13:  invert display, no args, no delay
 };
 
 // Init for 7735R, part 2 (green tab only)
@@ -561,7 +562,7 @@ static const uint8_t Rcmd3[] = {
   ST7735_NORON  ,    TFT_CMD_DELAY,	//  3: Normal display on, no args, w/delay
   10,						//     10 ms delay
   TFT_DISPON ,    TFT_CMD_DELAY,	//  4: Main screen turn on, no args w/delay
-  100						//     100 ms delay
+  100,						//     100 ms delay
 };
 
 

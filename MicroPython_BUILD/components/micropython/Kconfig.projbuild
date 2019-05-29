@@ -319,7 +319,7 @@ menu "MicroPython"
 
         config MICROPY_USE_DISPLAY
             bool "Use Display module"
-            default n
+            default y
             help
                 Include Display module into build
 
@@ -410,7 +410,7 @@ menu "MicroPython"
 
         config MICROPY_USE_GPS
             bool "Use GPS module"
-            default y
+            default n
             help
                 Include GPS module into build
 
@@ -450,13 +450,13 @@ menu "MicroPython"
 
         config MICROPY_USE_MDNS
             bool "Use mDNS module"
-            default y
+            default n
             help
                 Include mDNS module into build
 
         config MICROPY_USE_REQUESTS
             bool "Use requests module"
-            default y
+            default n
             help
                 Include requests module into build
                 The module ofers less features than curl, but uses far les resources

@@ -34,7 +34,9 @@
 */
 
 #include "sdkconfig.h"
-
+#ifndef CONFIG_MICROPY_USE_TFT
+#define CONFIG_MICROPY_USE_TFT
+#endif
 #ifdef CONFIG_MICROPY_USE_TFT
 
 #include <string.h>
@@ -76,6 +78,7 @@ uint32_t spi_speed = 10000000;
 static color_t *trans_cline = NULL;
 static const char TAG[] = "[TFTSPI]";
 static uint8_t invertrot = 0;
+static uint8_t irot = 0;
 
 uint8_t spibus_is_init = 0;
 
@@ -208,13 +211,21 @@ void disp_spi_transfer_cmd(int8_t cmd)
 //-----------------------------------------------------------------------------------------
 static void disp_spi_transfer_addrwin(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2) {
 	uint32_t wd;
+	uint8_t xOffset, yOffset;
+	if(irot & 0x01) {
+		xOffset = 0x01;
+		yOffset = 0x1A;
+	} else {
+		xOffset = 0x1A;
+		yOffset = 0x01;
+	}
 
 	disp_spi_transfer_cmd(TFT_CASET);
 
 	wd = (uint32_t)(x1 >> 8);
-	wd |= (uint32_t)(x1 & 0xff) << 8;
+	wd |= (uint32_t)((x1+xOffset) & 0xff) << 8;
 	wd |= (uint32_t)(x2 >> 8) << 16;
-	wd |= (uint32_t)(x2 & 0xff) << 24;
+	wd |= (uint32_t)((x2+xOffset) & 0xff) << 24;
 
 	while (disp_spi->handle->host->hw->cmd.usr); // wait transfer end
 	gpio_set_level(disp_spi->dc, 1);
@@ -224,9 +235,9 @@ static void disp_spi_transfer_addrwin(uint16_t x1, uint16_t x2, uint16_t y1, uin
 	disp_spi_transfer_cmd(TFT_PASET);
 
 	wd = (uint32_t)(y1 >> 8);
-	wd |= (uint32_t)(y1 & 0xff) << 8;
+	wd |= (uint32_t)((y1+yOffset) & 0xff) << 8;
 	wd |= (uint32_t)(y2 >> 8) << 16;
-	wd |= (uint32_t)(y2 & 0xff) << 24;
+	wd |= (uint32_t)((y2+yOffset) & 0xff) << 24;
 
 	while (disp_spi->handle->host->hw->cmd.usr); // wait transfer end
 	gpio_set_level(disp_spi->dc, 1);
@@ -898,6 +909,7 @@ void _tft_setRotation(uint8_t rot) {
 	uint8_t send = 1;
 	uint8_t madctl = 0;
 	uint16_t tmp;
+	irot = rotation;
 
     if ((rotation & 1)) {
         // in landscape modes must be width > height
@@ -1250,6 +1262,7 @@ esp_err_t TFT_display_init(display_config_t *dconfig)
         commandList(STP7735R_init);
         commandList(Rcmd2green);
         commandList(Rcmd3);
+		disp_spi_transfer_cmd(0x21);
     }
     else if (tft_disp_type == DISP_TYPE_ST7735B) {
         commandList(STP7735R_init);

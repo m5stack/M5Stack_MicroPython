@@ -26,6 +26,10 @@
 
 #include "sdkconfig.h"
 
+#ifndef CONFIG_MICROPY_USE_TFT
+#define CONFIG_MICROPY_USE_TFT
+#endif
+
 #ifdef CONFIG_MICROPY_USE_TFT
 
 #include <stdio.h>
@@ -265,7 +269,7 @@ STATIC mp_obj_t display_tft_init(mp_uint_t n_args, const mp_obj_t *pos_args, mp_
     	if ((self->dconfig.type == DISP_TYPE_ST7789V) ||
     			(self->dconfig.type == DISP_TYPE_ST7735) ||
 				(self->dconfig.type == DISP_TYPE_ST7735R) ||
-				(self->dconfig.type == DISP_TYPE_ST7735B)) self->dconfig.invrot = 1;
+				(self->dconfig.type == DISP_TYPE_ST7735B) || (self->dconfig.type == DISP_TYPE_M5STICK)) self->dconfig.invrot = 1;
     	else if (self->dconfig.type == DISP_TYPE_M5STACK) self->dconfig.invrot = 3;
     	else self->dconfig.invrot = 0;
     }
@@ -308,7 +312,7 @@ STATIC mp_obj_t display_tft_init(mp_uint_t n_args, const mp_obj_t *pos_args, mp_
 	// ==== Set SPI clock used for display operations ====
 	self->dconfig.speed = spi_set_speed(self->disp_spi, args[ARG_speed].u_int);
 
-	max_rdclock = find_rd_speed();
+	// max_rdclock = find_rd_speed();
 	self->dconfig.rdspeed = max_rdclock;
 
 	font_rotate = 0;
@@ -1896,6 +1900,7 @@ STATIC const mp_rom_map_elem_t display_tft_locals_dict_table[] = {
     // { MP_ROM_QSTR(MP_QSTR_ST7735R),				MP_ROM_INT(DISP_TYPE_ST7735R) },
     // { MP_ROM_QSTR(MP_QSTR_ST7735B),				MP_ROM_INT(DISP_TYPE_ST7735B) },
     { MP_ROM_QSTR(MP_QSTR_M5STACK),				MP_ROM_INT(DISP_TYPE_M5STACK) },
+    { MP_ROM_QSTR(MP_QSTR_M5STICK),				MP_ROM_INT(DISP_TYPE_M5STICK) },
     // { MP_ROM_QSTR(MP_QSTR_GENERIC),				MP_ROM_INT(DISP_TYPE_GENERIC) },
 
     { MP_ROM_QSTR(MP_QSTR_CENTER),				MP_ROM_INT(CENTER) },
