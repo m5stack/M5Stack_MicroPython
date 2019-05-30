@@ -1,7 +1,9 @@
-import uos as os
 import utime as time
 import display as lcd
-import machine, ubinascii
+import machine
+import ubinascii
+import axp192
+import rtc
 from ubutton import Button
 from micropython import const
 
@@ -25,15 +27,17 @@ print('\nDevice ID:' + node_id)
 print('LCD initializing...')
 
 # pin Analog and digital
-import axp192
 axp = axp192.Axp192()
 axp.powerAll()
+
+# RTC
+rtc = rtc.RTC()
 
 # LCD
 lcd = lcd.TFT()
 lcd.init(lcd.M5STICK, speed=30000000, bgr=True, mosi=15, miso=36, clk=13, cs=5, dc=23, rst_pin=18, width=80, height=160)
 
-#BUTTON
+# BUTTON
 m5button = Button()
 buttonA = m5button.register(_BUTTON_A_PIN)
 buttonB = m5button.register(_BUTTON_B_PIN)
