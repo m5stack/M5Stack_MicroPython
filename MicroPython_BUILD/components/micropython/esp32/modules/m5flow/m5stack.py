@@ -72,10 +72,9 @@ def delay(ms):
 
 
 def map_value(value, input_min, input_max, aims_min, aims_max):
-  value_deal = value * (aims_max - aims_min) / (input_max - input_min) + aims_min
-  value_deal = value_deal if value_deal < aims_max else aims_max
-  value_deal = value_deal if value_deal > aims_min else aims_min
-  return value_deal
+  value = min(max(input_min, value), input_max)
+  value_deal = (value - input_min) * (aims_max - aims_min) / (input_max - input_min) + aims_min
+  return round(value_deal, 2)
 
 # ------------------ M5Stack -------------------
 # Node ID
