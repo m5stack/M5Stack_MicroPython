@@ -1,3 +1,6 @@
+
+# Deprecated!!! Please check our new [repo](https://github.com/m5stack/uiflow-micropython) for uiflow 2.0!
+
 # M5Stack Micropython Base [Lobo MicroPython](https://github.com/loboris/MicroPython_ESP32_psRAM_LoBo/)
 
 ## Getting Started
